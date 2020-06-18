@@ -25,7 +25,7 @@ print("ingesting data")
 data=pd.read_csv("combined_niche_model_inputs_7vars", sep=" ", header=None, names=["slope","sin_aspect","cos_aspect","elevation","topo_wetness_index","summer_solar_irr",
                  "winter_solar_irr","plant_comm"])
 
-print("removing plant communities with poor accuracy...")
+print("Considering only the following 6 plant communties: Alder-Willow Shrub, Dryas-Lichen Dwarf Shrub Tundra, Mixed shrub-sedge Tussock Tundra", "Tussock-Lichen Tundra", "Wet-Sedge Bog-Meadow", "Willow-Birch Shrub")
 plant_comm = [21,25,26,29,30,37]
 data = data[data["plant_comm"].isin(plant_comm)].reset_index(drop=True)
 
