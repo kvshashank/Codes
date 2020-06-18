@@ -12,10 +12,6 @@ os.environ['PYTHONHASHSEED'] = str(seed_value)
 import numpy as np
 np.random.seed(seed_value)
 
-# 4. Set the `tensorflow` pseudo-random generator at a fixed value
-import tensorflow as tf
-tf.random.set_seed(seed_value)
-
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -28,7 +24,12 @@ from sklearn.ensemble import RandomForestClassifier
 print("ingesting data")
 data=pd.read_csv("combined_niche_model_inputs_7vars", sep=" ", header=None, names=["slope","sin_aspect","cos_aspect","elevation","topo_wetness_index","summer_solar_irr",
                  "winter_solar_irr","plant_comm"])
-print("subsetting data")
+
+print("removing plant communities with poor accuracy...")
+plant_comm = [21,25,26,29,30,37]
+data = data[data["plant_comm"].isin(plant_comm)].reset_index(drop=True)
+
+print("Dividing data into X and Y")
 
 X = data.iloc[:,0:7]
 Y = data.iloc[:,7]
@@ -52,7 +53,7 @@ for train, valid in k_fold.split(X_Train,Y_Train):
     Y_train = Y_Train.iloc[train]
     Y_valid = Y_Train.iloc[valid]
 
-    RF = RandomForestClassifier(n_estimators=100, random_state=seed_value, n_jobs=20)
+    RF = RandomForestClassifier(n_estimators=100, random_state=seed_value, n_jobs=20, class_weight="balanced", min_samples_split=30)
     RF.fit(X_train_scaled,Y_train)
     Y_valid_pred = RF.predict(X_valid_scaled)
     acc = metrics.accuracy_score(Y_valid,Y_valid_pred)
@@ -65,6 +66,6 @@ print("Validation: %.2f%% (+/- %.2f%%)" %(np.mean(cv_scores), np.std(cv_scores))
 scaler = preprocessing.StandardScaler().fit(X_Train)
 x_test = standardize(X_Test,scaler)
 y_test_pred = RF.predict(x_test)
-acc = metrics.accuracy_score(Y_Test,y_test_pred)
+percent_acc = (metrics.accuracy_score(Y_Test,y_test_pred))*100
 
-print("Test set accuracy: %.2f%%" % acc*100)
+print("Test set accuracy: %.2f%%" %percent_acc)
