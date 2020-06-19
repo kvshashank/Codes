@@ -69,3 +69,12 @@ y_test_pred = RF.predict(x_test)
 percent_acc = (metrics.accuracy_score(Y_Test,y_test_pred))*100
 
 print("Test set accuracy: %.2f%%" %percent_acc)
+
+## Assign importance scores to each of the input variables
+importance = pd.Series(RF.feature_importances_, index=X.columns).sort_values(ascending=False)
+sns.barplot(x=importance, y=importance.index)
+plt.xlabel("Normalized Feature Importance Score")
+plt.ylabel("Features")
+plt.title("Visualizing Important Features")
+plt.subplots_adjust(left=0.3)
+plt.savefig("variable_importance_scores.png")
