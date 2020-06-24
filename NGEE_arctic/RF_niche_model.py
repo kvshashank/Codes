@@ -22,17 +22,19 @@ import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 
 print("ingesting data")
-data=pd.read_csv("combined_niche_model_inputs_7vars", sep=" ", header=None, names=["slope","sin_aspect","cos_aspect","elevation","topo_wetness_index","summer_solar_irr",
-                 "winter_solar_irr","plant_comm"])
+data=pd.read_csv("combined_niche_model_inputs_15vars", sep=" ", header=None, names=["slope","sin_aspect","cos_aspect","elevation","topo_wetness_index","summer_solar_irr",
+                 "winter_solar_irr", "Mean_Annual_Temp", "Mean_Summer_Temp", "Mean_Winter_Temp", "Temp_Std_Dev", "Mean_Annual_Precip", "Mean_Summer_Precip", "Mean_Winter_Precip",
+                 "Precip_Std_Dev","plant_comm"])
 
-print("Considering only the following 6 plant communties: Alder-Willow Shrub, Dryas-Lichen Dwarf Shrub Tundra, Mixed shrub-sedge Tussock Tundra", "Tussock-Lichen Tundra", "Wet-Sedge Bog-Meadow", "Willow-Birch Shrub")
-plant_comm = [21,25,26,29,30,37]
-data = data[data["plant_comm"].isin(plant_comm)].reset_index(drop=True)
+## Use the next three lines only if the less accurate plant communities are to be dropped from analysis
+#print("removing plant communities with poor accuracy...")
+#plant_comm = [21,25,26,29,30,37]
+#data = data[data["plant_comm"].isin(plant_comm)].reset_index(drop=True)
 
 print("Dividing data into X and Y")
 
-X = data.iloc[:,0:7]
-Y = data.iloc[:,7]
+X = data.iloc[:,:-1]
+Y = data["plant_comm"]
 print("begin training")
 # Split data into train and test
 X_Train, X_Test, Y_Train, Y_Test = train_test_split(X, Y, test_size=0.2, random_state=seed_value, shuffle=True, stratify=Y)
@@ -70,11 +72,16 @@ percent_acc = (metrics.accuracy_score(Y_Test,y_test_pred))*100
 
 print("Test set accuracy: %.2f%%" %percent_acc)
 
-## Assign importance scores to each of the input variables
 importance = pd.Series(RF.feature_importances_, index=X.columns).sort_values(ascending=False)
+
 sns.barplot(x=importance, y=importance.index)
 plt.xlabel("Normalized Feature Importance Score")
 plt.ylabel("Features")
 plt.title("Visualizing Important Features")
 plt.subplots_adjust(left=0.3)
 plt.savefig("variable_importance_scores.png")
+
+scaler = preprocessing.StandardScaler().fit(X)
+x = standardize(X, scaler)
+prob = RF.predict_proba(x)
+np.savetxt("niche_model_probabilistic_output", prob, fmt='%.2f', delimiter=" ")
