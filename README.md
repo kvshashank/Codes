@@ -1,1 +1,1 @@
-All of the codes on CONUS-scale crop mapping and NGEE Arctic project are included in this repository
+All of the codes on CONUS-scale crop mapping, NGEE Arctic and ICESat-2 project are included in this repository
